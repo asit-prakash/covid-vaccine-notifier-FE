@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Head from 'next/head';
-import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { isMobilePhone, isLength, isNumeric, isPostalCode } from 'validator';
 import Loader from '../components/Loader/Loader';
