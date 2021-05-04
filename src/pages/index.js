@@ -2,14 +2,14 @@ import { useState } from 'react';
 import axios from 'axios';
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import { isMobilePhone, isLength, isNumeric, isPostalCode } from 'validator';
+import { isEmail, isLength, isNumeric, isPostalCode } from 'validator';
 import Loader from '../components/Loader/Loader';
 
 const Home = () => {
-  const [contact, setContact] = useState({
+  const [email, setEmail] = useState({
     value: '',
     isError: true,
-    message: 'Please enter a valid phone number',
+    message: 'Please enter a valid email',
   });
   const [pinCode, setPinCode] = useState({
     value: '',
@@ -23,17 +23,13 @@ const Home = () => {
   });
   const [showError, setShowError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [registerUserData, setRegisterUserData] = useState('');
+  const [registerUserData, setRegisterUserData] = useState(null);
 
   const validateData = (type, value) => {
     let isValid = false;
 
-    if (type === 'contact') {
-      if (
-        !isMobilePhone(value, 'en-IN') ||
-        !isLength(value, { min: 10, max: 10 }) ||
-        !isNumeric(value, { no_symbols: true })
-      ) {
+    if (type === 'email') {
+      if (!isEmail(value)) {
         isValid = true;
       }
       return isValid;
@@ -60,12 +56,12 @@ const Home = () => {
     const { value } = target;
 
     switch (type) {
-      case 'contact':
-        setContact({
+      case 'email':
+        setEmail({
           value: value,
           isError: validateData(type, value),
           message: validateData(type, value)
-            ? 'Please enter a valid phone number'
+            ? 'Please enter a valid email'
             : '',
         });
         break;
@@ -97,23 +93,63 @@ const Home = () => {
 
   const handleUserFormSubmit = async (event) => {
     event.preventDefault();
-    if (contact.isError || pinCode.isError || ageGroup.isError) {
+    if (email.isError || pinCode.isError || ageGroup.isError) {
       return setShowError(true);
     }
 
     setShowError(false);
+    setRegisterUserData(null);
     setLoading(true);
     const data = {
       pincode: pinCode.value,
-      phone_number: `+91${contact.value}`,
+      email: email.value,
       age: ageGroup.value,
     };
     try {
       const registerUser = await axios.post('/api/register', data);
-      console.log('data', registerUser);
+      if (registerUser.status === 200) {
+        setRegisterUserData(registerUser.data);
+      }
+      setEmail({
+        value: '',
+        isError: true,
+        message: 'Please enter a valid phone number',
+      });
+      setPinCode({
+        value: '',
+        isError: true,
+        message: 'Please enter a valid pin code',
+      });
+      setAgeGroup({
+        value: '',
+        isError: true,
+        message: 'Please select an age group',
+      });
       setLoading(false);
     } catch (error) {
-      console.log('error', error);
+      if (error.response) {
+        if (error.response.status === 400) {
+          if (!error.response.data.success) {
+            let isemailError = error?.response?.data?.error?.phNumber;
+            let isPinCodeError = error?.response?.data?.error?.pincode;
+            setEmail((currentState) => ({
+              ...currentState,
+              isError: isemailError !== undefined ? isemailError : false,
+              message: isemailError !== undefined ? isemailError : '',
+            }));
+            setPinCode((currentState) => ({
+              ...currentState,
+              isError: isPinCodeError !== undefined ? isPinCodeError : false,
+              message: isPinCodeError !== undefined ? isPinCodeError : '',
+            }));
+            setShowError(true);
+          }
+        } else if (error.response.status === 403) {
+          setRegisterUserData(error.response.data);
+        }
+      } else {
+        console.error(error);
+      }
       setLoading(false);
     }
   };
@@ -144,30 +180,39 @@ const Home = () => {
         </p>
       </div>
       <main className={styles.main}>
-        {registerUserData?.success && (
-          <div className='alert alert-success'>{registerUserData.message}</div>
+        {registerUserData !== null && (
+          <>
+            {registerUserData?.success ? (
+              <div className='col-md-12 alert alert-success'>
+                Registration successful
+              </div>
+            ) : (
+              <div className='col-md-12 alert alert-danger'>
+                {registerUserData?.error}
+              </div>
+            )}
+          </>
         )}
         <form onSubmit={handleUserFormSubmit}>
           <div className='form-group'>
-            <label className='text-light' htmlFor='contact'>
-              WhatsApp Number
+            <label className='text-light' htmlFor='email'>
+              Email
             </label>
             <input
               type='text'
               className={`form-control ${
-                showError && contact.isError ? 'is-invalid' : ''
+                showError && email.isError ? 'is-invalid' : ''
               }`}
-              id='contact'
-              maxLength='10'
-              value={contact.value}
-              onChange={handleChange('contact')}
-              placeholder='e.g: 9998881110'
+              id='email'
+              value={email.value}
+              onChange={handleChange('email')}
+              placeholder='e.g: xyz@gmail.com'
             />
             <small id='emailHelp' className='form-text  text-light'>
-              We'll never share your contact info with anyone else.
+              We'll never share your email info with anyone else.
             </small>
-            {showError && contact.isError && (
-              <div className='invalid-feedback'>{contact.message}</div>
+            {showError && email.isError && (
+              <div className='invalid-feedback'>{email.message}</div>
             )}
           </div>
 
