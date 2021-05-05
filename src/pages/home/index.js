@@ -6,6 +6,8 @@ import { isEmail, isLength, isNumeric, isPostalCode } from 'validator';
 import styles from '../../styles/Common/Common.module.css';
 import Loader from '../../components/Loader/Loader';
 import MetaData from '../../components/MetaData/MetaData';
+import NavigationBar from '../../components/NavigationBar/NavigationBar';
+import Footer from '../../components/Footer/Footer';
 
 const Home = () => {
   const [email, setEmail] = useState({
@@ -159,6 +161,7 @@ const Home = () => {
   return (
     <>
       <MetaData />
+      <NavigationBar />
       <div className={`${styles.container} bg-dark`}>
         <div className='mt-5'>
           <h4 className='text-light text-center'>
@@ -248,16 +251,10 @@ const Home = () => {
             <button type='submit' className='btn btn-outline-success btn-block'>
               {loading ? <Loader /> : 'Register'}
             </button>
-            <div className='mt-2'>
-              <Link href='opt-out' as='opt-out'>
-                <a className={`${styles.link} text-light`}>
-                  Click here to opt out
-                </a>
-              </Link>
-            </div>
           </form>
         </main>
       </div>
+      <Footer />
     </>
   );
 };

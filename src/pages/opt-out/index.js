@@ -4,8 +4,10 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 
 import MetaData from '../../components/MetaData/MetaData';
+import NavigationBar from '../../components/NavigationBar/NavigationBar';
 import Loader from '../../components/Loader/Loader';
 import styles from '../../styles/Common/Common.module.css';
+import Footer from '../../components/Footer/Footer';
 
 const OptOut = () => {
   const router = useRouter();
@@ -26,7 +28,9 @@ const OptOut = () => {
       setEmail({
         value: email,
         isError: validateData('email', email),
-        message: validateData('email', email) ? 'Please enter a valid email' : '',
+        message: validateData('email', email)
+          ? 'Please enter a valid email'
+          : '',
       });
     }
   }, [router]);
@@ -34,7 +38,7 @@ const OptOut = () => {
   useEffect(() => {
     if (router.query?.email) {
       // deleteUserForm.current.submit(new Event('submit'));
-      handleUserFormSubmit(new Event('submit'))
+      handleUserFormSubmit(new Event('submit'));
     }
   }, [email.value]);
 
@@ -77,7 +81,7 @@ const OptOut = () => {
     const data = {
       email: email.value,
     };
-    setLoading(true)
+    setLoading(true);
     try {
       const deleteUser = await axios.post('/api/deleteUser', data);
       if (deleteUser.status === 200) {
@@ -97,6 +101,7 @@ const OptOut = () => {
   return (
     <>
       <MetaData />
+      <NavigationBar />
       <div className={`${styles.container} bg-dark`}>
         <main className={styles.main}>
           {deleteUserData !== null && (
@@ -127,16 +132,20 @@ const OptOut = () => {
                 onChange={handleChange('email')}
                 placeholder='e.g: xyz@gmail.com'
               />
+              <small id='emailHelp' className='form-text  text-light'>
+                Your account details will be deleted permanently
+              </small>
               {showError && email.isError && (
                 <div className='invalid-feedback'>{email.message}</div>
               )}
             </div>
             <button type='submit' className='btn btn-outline-success btn-block'>
-              {loading ? <Loader /> : 'Opt Out'}
+              {loading ? <Loader /> : 'Unsubscribe'}
             </button>
           </form>
         </main>
       </div>
+      <Footer />
     </>
   );
 };
